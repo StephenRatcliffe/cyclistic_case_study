@@ -1,0 +1,134 @@
+-- Change time to string and do it again for every other month table
+
+SELECT 
+        ride_id, 
+        rideable_type, 
+        started_at, 
+        ended_at, 
+	      CAST(ride_length AS STRING) AS ride_length,
+        day_of_week,
+      	start_station_name, 
+      	start_station_id, 
+        end_station_name, 
+      	end_station_id, 
+        start_lat, 
+        start_lng, 
+      	end_lat, 
+        end_lng, 
+        member_casual
+FROM
+        `cyclistic-455706.bike_trips.2024_01_biketrips`
+
+
+-- Change the string to an interval, and do it again for all 12 tables
+
+
+SELECT 
+        ride_id, 
+        rideable_type, 
+        started_at, 
+        ended_at, 
+	      CAST(ride_length AS INTERVAL) AS ride_length,
+        day_of_week,
+      	start_station_name, 
+      	start_station_id, 
+        end_station_name, 
+      	end_station_id, 
+        start_lat, 
+        start_lng, 
+      	end_lat, 
+        end_lng, 
+        member_casual
+FROM
+        `cyclistic-455706.bike_trips.2024_01_biketrips`
+
+
+-- Create 4 quarterly tables for analysis by season:
+-- Table 1: 2024_Q1 -> Jan + Feb + Mar
+-- Table 2: 2024_Q2 -> Apr + May + Jun
+-- Table 3: 2024_Q3 -> Jul + Aug + Sep
+-- Table 4: 2024_Q4 -> Oct + Nov + Dec
+
+-- First will create 2024_Q1_biketrips and then repeat for the remaining 3 tables
+-- Using UNION to join 2024_Q1 tables: JAN, FEB, MAR
+
+
+SELECT 
+        ride_id, 
+        rideable_type, 
+        started_at, 
+        ended_at, 
+	      ride_length,
+        day_of_week,
+      	start_station_name, 
+      	start_station_id, 
+        end_station_name, 
+      	end_station_id, 
+        start_lat, 
+        start_lng, 
+      	end_lat, 
+        end_lng, 
+        member_casual
+FROM
+        `cyclistic-455706.bike_trips.2024_01_biketrips`
+UNION DISTINCT
+SELECT 
+        ride_id, 
+        rideable_type, 
+        started_at, 
+        ended_at, 
+	      ride_length,
+        day_of_week,
+      	start_station_name, 
+      	start_station_id, 
+        end_station_name, 
+      	end_station_id, 
+        start_lat, 
+        start_lng, 
+      	end_lat, 
+        end_lng, 
+        member_casual
+FROM
+       `cyclistic-455706.bike_trips.2024_02_biketrips`
+UNION DISTINCT
+SELECT 
+        ride_id, 
+        rideable_type, 
+        started_at, 
+        ended_at, 
+	      ride_length,
+        day_of_week,
+      	start_station_name, 
+      	start_station_id, 
+        end_station_name, 
+      	end_station_id, 
+        start_lat, 
+        start_lng, 
+      	end_lat, 
+        end_lng, 
+        member_casual
+FROM
+        `cyclistic-455706.bike_trips.2024_03_biketrips`
+
+
+-- Change the numbers for "day_of_week" in Q1, Q2, Q3, and Q4
+-- Do the first table (2021_Q1) first, then the next four
+-- Change the numbers of "day_of_week" with CASE WHEN
+
+UPDATE 
+	`cyclistic-455706.bike_trips.2024_Q1_biketrips`
+SET  
+        day_of_week = 
+            CASE
+                WHEN day_of_week = '1' THEN 'Sunday'
+                WHEN day_of_week = '2' THEN 'Monday'
+                WHEN day_of_week = '3' THEN 'Tuesday'
+                WHEN day_of_week = '4' THEN 'Wednesday'
+                WHEN day_of_week = '5' THEN 'Thursday'
+                WHEN day_of_week = '6' THEN 'Friday'
+                WHEN day_of_week = '7' THEN 'Saturday' 
+            END
+WHERE
+        day_of_week IN ('1', '2', '3', '4', '5', '6', '7')
+
+
