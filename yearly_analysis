@@ -1,0 +1,230 @@
+-- Create a table of the full 2024 year by combining the four quartly tables
+
+SELECT 
+        ride_id, 
+        member_casual, 
+        started_at, 
+        ended_at, 
+	      ride_length, 
+        day_of_week, 
+        start_station_name, 
+	      start_station_id, 
+        end_station_name, 
+	      end_station_id, 
+        start_lat, 
+        start_lng, 
+	      end_lat, 
+        end_lng, 
+        rideable_type
+FROM 
+        `cyclistic-455706.bike_trips.2024_Q1_biketrips`
+UNION DISTINCT  
+SELECT 
+        ride_id, 
+        member_casual, 
+        started_at, 
+        ended_at, 
+	      ride_length, 
+        day_of_week, 
+        start_station_name, 
+	      start_station_id, 
+        end_station_name, 
+	      end_station_id, 
+        start_lat, 
+        start_lng, 
+	      end_lat, 
+        end_lng, 
+        rideable_type
+FROM 
+        `cyclistic-455706.bike_trips.2024_Q2_biketrips`
+UNION DISTINCT  
+SELECT 
+        ride_id, 
+        member_casual, 
+        started_at, 
+        ended_at, 
+	      ride_length, 
+        day_of_week, 
+        start_station_name, 
+	      start_station_id, 
+        end_station_name, 
+	      end_station_id, 
+        start_lat, 
+        start_lng, 
+	      end_lat, 
+        end_lng, 
+        rideable_type
+FROM 
+        `cyclistic-455706.bike_trips.2024_Q3_biketrips`
+UNION DISTINCT  
+SELECT 
+        ride_id, 
+        member_casual, 
+        started_at, 
+        ended_at, 
+	      ride_length, 
+        day_of_week, 
+        start_station_name, 
+	      start_station_id, 
+        end_station_name, 
+	      end_station_id, 
+        start_lat, 
+        start_lng, 
+	      end_lat, 
+        end_lng, 
+        rideable_type
+FROM 
+        `cyclistic-455706.bike_trips.2024_Q4_biketrips`
+
+
+-- Looking at total trips for Member vs. Casual
+
+SELECT
+        TotalTrips,
+        TotalMemberTrips,
+        TotalCasualTrips,
+        ROUND(TotalMemberTrips/TotalTrips,2)*100 AS MemberPercentage,
+        ROUND(TotalCasualTrips/TotalTrips,2)*100 AS CasualPercentage
+FROM 
+        (
+        SELECT
+                COUNT(ride_id) AS TotalTrips,
+                COUNTIF(member_casual = 'member') AS TotalMemberTrips,
+                COUNTIF(member_casual = 'casual') AS TotalCasualTrips
+        FROM
+                `cyclistic-455706.bike_trips.2024_biketrips`
+        )
+
+
+-- Average ride lengths for Member vs. Casual
+
+
+SELECT
+        (
+        SELECT
+              AVG(ride_length)
+        FROM
+              `cyclistic-455706.bike_trips.2024_biketrips` 
+        ) AS AvgRideLength_Overall,
+        (
+        SELECT
+              AVG(ride_length)
+        FROM
+              `cyclistic-455706.bike_trips.2024_biketrips`
+        WHERE
+              member_casual = 'member'
+        ) AS AvgRideLength_Member,
+        (
+        SELECT
+              AVG(ride_length)
+        FROM
+              `cyclistic-455706.bike_trips.2024_biketrips`
+        WHERE
+              member_casual = 'casual' ) AS AvgRideLength_Casual
+
+
+-- Member vs. Casual rides per day
+
+SELECT
+        member_casual,
+        day_of_week AS mode_day_of_week 
+FROM 
+        (
+        SELECT
+              DISTINCT member_casual,
+              day_of_week,
+              ROW_NUMBER() OVER (PARTITION BY member_casual ORDER BY COUNT(day_of_week) DESC) rn
+        FROM
+              `cyclistic-455706.bike_trips.2024_biketrips`
+        GROUP BY
+              member_casual,
+              day_of_week 
+        )
+WHERE
+        rn = 1
+ORDER BY
+        member_casual DESC
+LIMIT 2
+
+
+-- Average ride length per day
+
+SELECT
+        day_of_week,
+        AVG(ride_length) AS average_ride_length
+FROM 
+        (
+        SELECT
+                member_casual,
+                day_of_week,
+                ride_length,
+        FROM
+                `cyclistic-455706.bike_trips.2024_biketrips` 
+        )
+GROUP BY
+        day_of_week
+ORDER BY
+        average_ride_length DESC
+LIMIT 7
+
+
+-- Average ride length per day Member vs. Casual
+
+SELECT
+        member_casual,
+        day_of_week,
+        AVG(ride_length) AS average_ride_length
+FROM 
+        (
+        SELECT
+                member_casual,
+                day_of_week,
+                ride_length,
+        FROM
+                `cyclistic-455706.bike_trips.2024_biketrips`
+        )
+GROUP BY
+        day_of_week,
+        member_casual
+ORDER BY
+        average_ride_length DESC
+LIMIT 14
+
+
+
+-- Overall trips per day 
+
+SELECT
+        day_of_week,
+        COUNT(DISTINCT ride_id) AS TotalTrips,
+        (COUNT(DISTINCT ride_id)/TotalTrips_Overall)*100 AS PercentageOfTotal
+FROM
+        (
+        SELECT
+              COUNT(ride_id) AS TotalTrips_Overall
+        FROM
+              `cyclistic-455706.bike_trips.2024_biketrips`
+        ),
+        `cyclistic-455706.bike_trips.2024_biketrips`
+GROUP BY
+        day_of_week, TotalTrips_Overall
+ORDER BY
+        TotalTrips DESC
+LIMIT 7
+
+
+
+-- Total trips per day Overall, Member, Casual
+
+SELECT  
+        day_of_week,
+        COUNT(DISTINCT ride_id) AS TotalTrips,
+        SUM(CASE WHEN member_casual = 'member' THEN 1 ELSE 0 END) AS MemberTrips,
+        SUM(CASE WHEN member_casual = 'casual' THEN 1 ELSE 0 END) AS CasualTrips
+FROM 
+        `cyclistic-455706.bike_trips.2024_biketrips`
+GROUP BY 
+        1
+ORDER BY 
+        TotalTrips DESC 
+LIMIT 7
