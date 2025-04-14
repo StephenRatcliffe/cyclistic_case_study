@@ -1,0 +1,157 @@
+-- Member vs. Casual Total Trips
+-- Taking a look at the totals for annual members and casual riders
+-- Repeat this step for the other 3 quarters
+
+SELECT 
+        TotalTrips,
+        TotalMemberTrips,
+        TotalCasualTrips,
+        ROUND(TotalMemberTrips/TotalTrips,2)*100 AS MemberPercentage,
+        ROUND(TotalCasualTrips/TotalTrips,2)*100 AS CasualPercentage
+FROM 
+        (
+        SELECT
+                COUNT(ride_id) AS TotalTrips,
+                COUNTIF(member_casual = 'member') AS TotalMemberTrips,
+                COUNTIF(member_casual = 'casual') AS TotalCasualTrips,
+        FROM
+                `cyclistic-455706.bike_trips.2024_Q1_biketrips`
+        )
+
+
+-- Member vs. Casual average ride lengths
+-- Looking at the average lengths of rides for both members and casual riders
+-- Repeat for the other 3 quarters
+
+SELECT
+        (
+        SELECT 
+                AVG(ride_length)
+        FROM 
+                `cyclistic-455706.bike_trips.2024_Q1_biketrips`
+        ) AS AvgRideLength_Overall,
+        (
+        SELECT 
+                AVG(ride_length) 
+        FROM 
+                `cyclistic-455706.bike_trips.2024_Q1_biketrips`
+        WHERE 
+                member_casual = 'member'
+        ) AS AvgRideLength_Member,
+        (
+        SELECT 
+                AVG(ride_length) 
+        FROM 
+                `cyclistic-455706.bike_trips.2024_Q1_biketrips`
+        WHERE 
+                member_casual = 'casual'
+        ) AS AvgRideLength_Casual
+
+
+-- Member vs. Casual total rides per day
+-- Repeat for the other 3 quarters
+
+SELECT
+        member_casual, 
+        day_of_week AS mode_day_of_week 
+FROM 
+        (
+        SELECT
+                DISTINCT member_casual, day_of_week, ROW_NUMBER() OVER (PARTITION BY member_casual ORDER BY COUNT(day_of_week) DESC) rn
+        FROM
+                `cyclistic-455706.bike_trips.2024_Q1_biketrips_copy`
+        GROUP BY
+                member_casual, day_of_week
+        )
+WHERE
+        rn = 1
+ORDER BY
+        member_casual DESC LIMIT 2
+
+
+-- Average ride length per day
+-- Repeat for other 3 quarters
+
+SELECT 
+        day_of_week,
+        AVG(ride_length) AS average_ride_length
+FROM 
+        (
+        SELECT 
+                member_casual,
+                day_of_week,
+                ride_length,
+        FROM
+                `cyclistic-455706.bike_trips.2024_Q1_biketrips_copy`
+        )
+GROUP BY
+        day_of_week
+ORDER BY
+        average_ride_length DESC LIMIT 7
+
+
+-- Average ride length per day for Casual vs. Member
+-- Repeat for other 3 quarters
+
+SELECT 
+        member_casual,
+        day_of_week,
+        AVG(ride_length) AS average_ride_length
+FROM 
+        (
+        SELECT 
+                member_casual,
+                day_of_week,
+                ride_length,
+        FROM
+                `cyclistic-455706.bike_trips.2024_Q1_biketrips_copy`
+        )
+GROUP BY
+        day_of_week,
+        member_casual
+ORDER BY
+        average_ride_length DESC LIMIT 14
+
+
+-- Overall trips per day
+-- Repeat for other 3 quarters
+
+SELECT  
+        day_of_week,
+        COUNT(DISTINCT ride_id) AS TotalTrips
+FROM
+        `cyclistic-455706.bike_trips.2024_Q1_biketrips_copy`
+GROUP BY 
+        day_of_week
+ORDER BY 
+        TotalTrips DESC LIMIT 7
+
+
+-- Total trips per day for Overall, Member, Casual
+-- Repeat for other 3 quarters
+
+SELECT  
+        day_of_week,
+        COUNT(DISTINCT ride_id) AS TotalTrips,
+        SUM(CASE WHEN member_casual = 'member' THEN 1 ELSE 0 END) AS MemberTrips,
+        SUM(CASE WHEN member_casual = 'casual' THEN 1 ELSE 0 END) AS CasualTrips
+FROM 
+        `cyclistic-455706.bike_trips.2024_Q1_biketrips_copy`
+GROUP BY 
+        1
+ORDER BY 
+        TotalTrips DESC LIMIT 7
+
+SELECT  
+        day_of_week,
+        COUNT(DISTINCT ride_id) AS TotalTrips
+FROM
+        `cyclistic-455706.bike_trips.2024_Q1_biketrips_copy`
+WHERE 
+        member_casual = 'member'
+        -- member_casual = 'casual'
+GROUP BY 
+        day_of_week
+ORDER BY 
+        TotalTrips DESC LIMIT 7
+
